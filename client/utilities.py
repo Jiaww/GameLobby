@@ -29,7 +29,7 @@ def read_command(line):
             return -1, 0
     elif len(command) == 2:
         header, content = command
-        if header not in ["register", "log_in", "chat_all", "create_room", "join_room", "chat_room", "chat_private"]:
+        if header not in ["register", "log_in", "chat_all", "create_room", "join_room", "chat_room", "chat_private", "21game"]:
             return -1, 0
         return header, content
 

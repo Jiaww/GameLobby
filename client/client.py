@@ -57,4 +57,6 @@ class Client(threading.Thread):
 
 if __name__ == "__main__":
     client = Client(HOST, PORT)
-    client.run()
+    #client.run()
+    client.setDaemon(False)
+    client.start()

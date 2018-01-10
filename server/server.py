@@ -2,7 +2,7 @@ import socket
 import select
 from activeClient import *
 from utilities import *
-
+from game21 import Game21
 
 class Server:
     def __init__(self, host=HOST, port=PORT):
@@ -14,12 +14,16 @@ class Server:
         self.receive_size = RECEIVE_SIZE
         print "Server start at: %s:%s" %(host, port)
         print "Waiting for connections..."
+        # Game Object
+        self.game = Game21()
+        self.game.setDaemon(True)
+        self.game.start()
 
         self.skts = []
         self.skts.append(self.listen_skt)
         # loading users data from file
         load_users_data()
-        ServerData.server = self
+        ServerCache.server = self
 
     def add_client(self, skt, addr):
         # Add active client
@@ -27,7 +31,7 @@ class Server:
         self.skts.append(skt)
         # Assign proxy for the activated client
         client = ActiveClient(skt, addr)
-        ServerData.act_client_dict[skt] = client
+        ServerCache.act_client_dict[skt] = client
 
     def delete_client(self, skt, addr):
         # Delete non-active client
@@ -36,16 +40,16 @@ class Server:
         except:
             pass
         self.skts.remove(skt)
-        client = ServerData.act_client_dict[skt]
+        client = ServerCache.act_client_dict[skt]
         user_name = client.user_name
         temp_addr = client.addr
         if user_name:
-            ServerData.login_dict.pop(user_name)
-            ServerData.users_db[user_name][1] += round(time.time() - client.start_time)
+            ServerCache.login_dict.pop(user_name)
+            ServerCache.users_db[user_name][1] += round(time.time() - client.start_time)
             save_users_data()
             time.sleep(0.1)
-            broadcast_msg(ServerData.login_dict.keys(), '%s log out' % user_name)
-        ServerData.act_client_dict.pop(skt, None)
+            broadcast_msg(ServerCache.login_dict.keys(), '%s log out' % user_name)
+        ServerCache.act_client_dict.pop(skt, None)
         print "Client (%s:%s) disconnected" % temp_addr
 
     def run(self):
@@ -60,10 +64,10 @@ class Server:
                         print "Client (%s:%s) connected" % addr
                     else:
                         # receive data
-                        end = ServerData.act_client_dict[r].process_msg()
+                        end = ServerCache.act_client_dict[r].process_msg()
                         # when no longer receive, delete client
                         if not end:
-                            self.delete_client(r, ServerData.act_client_dict[r].addr)
+                            self.delete_client(r, ServerCache.act_client_dict[r].addr)
             except:
                 pass
 

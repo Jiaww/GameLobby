@@ -2,25 +2,29 @@ import json
 
 
 # Server Data: Store all info and data when server is running
-class ServerData:
+class ServerCache:
     server = None
     users_db = {} # username : (password, onlinetime)
     login_dict = {} # username : socket
     act_client_dict = {} # socket : active_client
     room_dict = {} # roomname : [user1, user2, user3]
+    # Game
+    game_start = False
+    game_nums = []
+    answers_dict = {} # username : (answer, answer_time)
 
 
 # Config Values
 RECEIVE_SIZE = 1024
 HOST = "127.0.0.1" # localhost
 PORT = 8888
-
+GAME_LENGTH = 40
 
 # DB utilities
 def load_users_data():
     with open('users_data.db', 'r') as f:
         try:
-            ServerData.users_db = json.load(f)
+            ServerCache.users_db = json.load(f)
         except:
             pass
     f.close()
@@ -28,7 +32,7 @@ def load_users_data():
 
 def save_users_data():
     with open('users_data.db', 'w') as f:
-        json.dump(ServerData.users_db, f)
+        json.dump(ServerCache.users_db, f)
     f.close()
 
 
@@ -50,7 +54,7 @@ def get_time_str(t):
 
 def broadcast_msg(user_lst, msg):
     for user in user_lst:
-        temp_skt = ServerData.login_dict[user]
+        temp_skt = ServerCache.login_dict[user]
         temp_skt.send(enpack(msg))
 
 
@@ -69,5 +73,6 @@ def get_help_menu():
         "11. [ get_lobby_user_list ] : get all usernames in the lobby(All active users) \n" \
         "12. [ get_room_list ] : get all roomname list \n" \
         "13. [ get_room_user_list ] : get all usernames in the room \n" \
-        "14. [ chat_room message ] : chat with the users in the room \n"
+        "14. [ chat_room message ] : chat with the users in the room \n" \
+        "15. [ 21game expression ] : play 21 game\n"
     return s
